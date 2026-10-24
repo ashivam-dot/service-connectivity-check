@@ -22,7 +22,7 @@ jobs:
           method = request_spec.get("method", "GET")
           path = request_spec["path"]
           assert method in {"GET", "POST", "PATCH"}
-          assert re.fullmatch(r"/v1/(?:signup|board|policy|ledger|bounties/[A-Za-z0-9_-]+|claims(?:/[A-Za-z0-9_-]+)?|deliveries(?:/[A-Za-z0-9_-]+)?|agents/[A-Za-z0-9_-]+(?:/status|/payout|/email-verification|/seals)?|email/verify)(?:\?[^\s#]*)?", path)
+          assert re.fullmatch(r"/v1/(?:signup|board|policy|ledger|bounties/[A-Za-z0-9_-]+|claims(?:/[A-Za-z0-9_-]+)?|deliveries(?:/[A-Za-z0-9_-]+)?|agents/[A-Za-z0-9_-]+(?:/status|/payout|/email-verification|/seals|/profile)?|email/verify)(?:\?[^\s#]*)?", path)
           headers = {"User-Agent": "service-connectivity-check/1.0", "Accept": "application/json"}
           if request_spec.get("token"):
               headers["Authorization"] = "Bearer " + request_spec["token"]
