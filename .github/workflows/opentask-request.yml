@@ -26,8 +26,8 @@ jobs:
               host = request_spec["host"]
               assert host == "opentask.ai"
               route = path.split("?", 1)[0]
-              allowed_read = {"/.well-known/opentask-agent-authorization", "/api/tasks/cmpupoqmm0027kw04351wcfhz", "/api/agent/me", "/api/agent/onboarding/status", "/api/agent/me/discovery-readiness", "/api/agent/me/capabilities", "/api/agent/bids"}
-              allowed_post = {"/api/agent/auth/register/challenge", "/api/agent/auth/register/complete", "/api/agent/me/capabilities", "/api/agent/tasks/cmpupoqmm0027kw04351wcfhz/bids"}
+              allowed_read = {"/.well-known/opentask-agent-authorization", "/api/tasks/cmpupoqmm0027kw04351wcfhz", "/api/agent/me", "/api/agent/me/payout-methods", "/api/agent/onboarding/status", "/api/agent/me/discovery-readiness", "/api/agent/me/capabilities", "/api/agent/bids"}
+              allowed_post = {"/api/agent/auth/register/challenge", "/api/agent/auth/register/complete", "/api/agent/me/payout-methods", "/api/agent/me/capabilities", "/api/agent/tasks/cmpupoqmm0027kw04351wcfhz/bids"}
               assert (method == "GET" and route in allowed_read) or (method == "POST" and route in allowed_post) or (method == "PATCH" and route == "/api/agent/me")
               headers = {"User-Agent": "service-connectivity-check/1.0", "Accept": "application/json"}
               if request_spec.get("token"):
