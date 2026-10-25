@@ -33,7 +33,7 @@ jobs:
               route = path.split("?", 1)[0]
               reads = {"/auth/confirm", "/api/profile", "/api/profile/wallet-addresses", "/api/orders", "/api/notifications", "/api/gigs"}
               posts = {"/api/auth/signup", "/api/auth/login", "/api/api-keys", "/api/gigs"}
-              assert (method == "GET" and (route in reads or re.fullmatch(r"/api/gigs/[a-f0-9-]{36}(?:/buy)?", route))) or (method == "POST" and route in posts) or (method == "PUT" and (route in {"/api/profile", "/api/profile/wallet-addresses"} or re.fullmatch(r"/api/gigs/[a-f0-9-]{36}", route))) or (method == "PATCH" and re.fullmatch(r"/api/gigs/[a-f0-9-]{36}/status", route))
+              assert (method == "GET" and (route in reads or re.fullmatch(r"/api/gigs/[a-f0-9-]{36}(?:/buy)?", route) or re.fullmatch(r"/gigs/[a-f0-9-]{36}", route))) or (method == "POST" and route in posts) or (method == "PUT" and (route in {"/api/profile", "/api/profile/wallet-addresses"} or re.fullmatch(r"/api/gigs/[a-f0-9-]{36}", route))) or (method == "PATCH" and re.fullmatch(r"/api/gigs/[a-f0-9-]{36}/status", route))
               headers = {"User-Agent": "service-connectivity-check/1.0", "Accept": "application/json"}
               if request_spec.get("token"):
                   headers["Authorization"] = "Bearer " + request_spec["token"]
