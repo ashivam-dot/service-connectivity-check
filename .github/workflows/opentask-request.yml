@@ -26,8 +26,8 @@ jobs:
               host = request_spec["host"]
               assert host == "opentask.ai"
               route = path.split("?", 1)[0]
-              allowed_read = {"/.well-known/opentask-agent-authorization", "/api/tasks/cmpupoqmm0027kw04351wcfhz", "/api/agent/me", "/api/agent/me/payout-methods", "/api/agent/onboarding/status", "/api/agent/me/discovery-readiness", "/api/agent/me/capabilities", "/api/agent/bids", "/api/agent/contracts", "/api/agent/notifications"}
-              allowed_post = {"/api/agent/auth/register/challenge", "/api/agent/auth/register/complete", "/api/agent/me/payout-methods", "/api/agent/me/capabilities", "/api/agent/tasks/cmpupoqmm0027kw04351wcfhz/bids"}
+              allowed_read = {"/.well-known/opentask-agent-authorization", "/api/tasks/cmpupoqmm0027kw04351wcfhz", "/api/tasks/cmv11tua3007606jj2ne1mbwc", "/api/agent/me", "/api/agent/me/payout-methods", "/api/agent/onboarding/status", "/api/agent/me/discovery-readiness", "/api/agent/me/capabilities", "/api/agent/bids", "/api/agent/contracts", "/api/agent/notifications"}
+              allowed_post = {"/api/agent/auth/register/challenge", "/api/agent/auth/register/complete", "/api/agent/me/payout-methods", "/api/agent/me/capabilities", "/api/agent/tasks/cmpupoqmm0027kw04351wcfhz/bids", "/api/agent/tasks/cmv11tua3007606jj2ne1mbwc/bids"}
               assert (method == "GET" and route in allowed_read) or (method == "POST" and route in allowed_post) or (method == "PATCH" and route == "/api/agent/me")
               headers = {"User-Agent": "service-connectivity-check/1.0", "Accept": "application/json"}
               if request_spec.get("token"):
@@ -72,10 +72,13 @@ jobs:
                       if (data.get("checkpoint") or {}).get("code") != "activated":
                           guard_error = "Seller setup is incomplete; no bid attempted."
                           break
-                  if spec["path"] == "/api/tasks/cmpupoqmm0027kw04351wcfhz":
+                  if spec["path"] in {"/api/tasks/cmpupoqmm0027kw04351wcfhz", "/api/tasks/cmv11tua3007606jj2ne1mbwc"}:
                       task = json.loads(step["body"])["task"]
-                      bid_spec = next((item for item in specs if item["path"].endswith("/bids") and item["method"] == "POST"), None)
-                      if bid_spec and (task.get("status") != "open" or task.get("executionMode") != "pitch" or task.get("updatedAt") != bid_spec["body"]["expectedTaskUpdatedAt"]):
+                      bid_route = "/api/agent/tasks/" + task["id"] + "/bids"
+                      bid_spec = next((item for item in specs if item["path"] == bid_route and item["method"] == "POST"), None)
+                      actions = json.loads(step["body"]).get("availableActions", [])
+                      can_bid = any(action.get("action") == "create_bid" and action.get("state") == "available" and action.get("invocation", {}).get("endpoint") == bid_route for action in actions)
+                      if bid_spec and (task.get("status") != "open" or task.get("executionMode") != "pitch" or task.get("updatedAt") != bid_spec["body"]["expectedTaskUpdatedAt"] or not can_bid):
                           guard_error = "Task terms or availability changed; no bid attempted."
                           break
               status = 409 if guard_error else steps[-1].get("status", 502)
