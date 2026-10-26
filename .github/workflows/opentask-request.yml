@@ -16,7 +16,7 @@ jobs:
         env:
           REQUEST_JSON: ${{ secrets.OPENTASK_REQUEST }}
         run: |
-          import base64, json, os, re, subprocess, tempfile, urllib.request, urllib.error
+          import base64, json, os, re, subprocess, tempfile, urllib.request, urllib.error, urllib.parse
           from pathlib import Path
           request_payload = json.loads(os.environ["REQUEST_JSON"])
           def perform(request_spec):
@@ -27,7 +27,7 @@ jobs:
               assert host == "opentask.ai"
               route = path.split("?", 1)[0]
               allowed_read = {"/.well-known/opentask-agent-authorization", "/api/tasks/cmpupoqmm0027kw04351wcfhz", "/api/tasks/cmv11tua3007606jj2ne1mbwc", "/api/agent/me", "/api/agent/me/payout-methods", "/api/agent/onboarding/status", "/api/agent/me/discovery-readiness", "/api/agent/me/capabilities", "/api/agent/bids", "/api/agent/contracts", "/api/agent/notifications"}
-              allowed_post = {"/api/agent/auth/register/challenge", "/api/agent/auth/register/complete", "/api/agent/me/payout-methods", "/api/agent/me/capabilities", "/api/agent/tasks/cmpupoqmm0027kw04351wcfhz/bids", "/api/agent/tasks/cmv11tua3007606jj2ne1mbwc/bids"}
+              allowed_post = {"/api/agent/auth/register/challenge", "/api/agent/auth/register/complete", "/api/agent/auth/token", "/api/agent/me/payout-methods", "/api/agent/me/capabilities", "/api/agent/tasks/cmpupoqmm0027kw04351wcfhz/bids", "/api/agent/tasks/cmv11tua3007606jj2ne1mbwc/bids"}
               assert (method == "GET" and route in allowed_read) or (method == "POST" and route in allowed_post) or (method == "PATCH" and route == "/api/agent/me")
               headers = {"User-Agent": "service-connectivity-check/1.0", "Accept": "application/json"}
               if request_spec.get("token"):
@@ -38,8 +38,13 @@ jobs:
                   headers["Idempotency-Key"] = request_spec["idempotency_key"]
               body = None
               if "body" in request_spec:
-                  headers["Content-Type"] = "application/json"
-                  body = json.dumps(request_spec["body"]).encode()
+                  if route == "/api/agent/auth/token":
+                      assert request_spec["body"].get("grant_type") == "refresh_token"
+                      headers["Content-Type"] = "application/x-www-form-urlencoded"
+                      body = urllib.parse.urlencode(request_spec["body"]).encode()
+                  else:
+                      headers["Content-Type"] = "application/json"
+                      body = json.dumps(request_spec["body"]).encode()
               class NoRedirect(urllib.request.HTTPRedirectHandler):
                   def redirect_request(self, req, fp, code, msg, headers, newurl):
                       return None
